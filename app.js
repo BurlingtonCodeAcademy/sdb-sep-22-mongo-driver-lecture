@@ -14,7 +14,9 @@ async function dbConnect() {
 
     let db = await client.db("mongolesson")
 
-    let collection = await db.collection("users")
+    // let collection = await db.collection("users")
+
+    let collection = await db.collection("inventory")
 
     return collection
 }
@@ -37,6 +39,40 @@ app.get("/", async (_, res) => {
     res.status(200).json({userList})
 })
 
+// Find One
+app.get("/findone/:status", async (req, res) => {
+    let status = req.params.status
+    let c =  await dbConnect()
+    // finds all instances of db query we're passing thru our parameter
+    // let result = await c.find({status}).toArray()
+
+    // aggregates the search to look for our parameter or hardcoded paper value
+    // let result = await c.find({
+    //     $or: [
+    //         { status },
+    //         { item: "paper" }
+    //     ]
+    // }).toArray()
+    // we need .toArray() method or wrap into forEach/loop if db query returns > 1 document
+
+    // Using aggregates to further filter our db query
+    // let result = await c.find({status, qty: { $gt: 50 }}).toArray()
+
+    // Querying nested documents
+    let result = await c.find({ status, "size.h": { $gt: 8}}).toArray()
+    
+    console.log(result)
+    
+    if (!result.length) {
+        res.status(404).json({
+            message: "Content not found"
+        })
+    } else {
+        res.status(200).json({
+            result
+        })
+    }
+})
 
 
 app.listen(PORT, () => {
